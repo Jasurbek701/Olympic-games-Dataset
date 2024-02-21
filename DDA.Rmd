@@ -2,8 +2,7 @@
 title: "DDA"
 author: "MyMac"
 date: "2024-02-19"
-output: html_document:
-              keep_md: true
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
