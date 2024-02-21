@@ -2,7 +2,7 @@
 title: "DDA"
 author: "MyMac"
 date: "2024-02-19"
-output: html_document
+output: output: rmarkdown::github_document
 ---
 
 ```{r setup, include=FALSE}
