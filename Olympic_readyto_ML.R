@@ -1,0 +1,350 @@
+
+  title: "DDA"
+author: "MyMac"
+date: "2024-02-19"
+output: html_document
+
+  
+{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+
+#DATASET
+data <- read.csv("athlete_events.csv")
+
+
+
+
+#Cleaning all NA values with their rows
+cdata <- na.omit(data)
+
+
+
+#Size
+dim(cdata)
+
+#Summary
+summary(cdata)
+
+#str
+str(cdata)
+
+
+
+#Char to factorial
+cdata$Name <- as.factor(cdata$Name)
+cdata$Sex <- as.factor(cdata$Sex)
+cdata$Team <- as.factor(cdata$Team)
+cdata$NOC <- as.factor(cdata$NOC)
+cdata$Games <- as.factor(cdata$Games)
+cdata$Season <- as.factor(cdata$Season)
+cdata$City <- as.factor(cdata$City)
+cdata$Sport <- as.factor(cdata$Sport)
+cdata$Event <- as.factor(cdata$Event)
+cdata$Medal <- as.factor(cdata$Medal)
+
+
+#Summary
+summary(cdata)
+
+#str
+str(cdata)
+
+#Last 30 years only
+cdata <- cdata %>% filter(Year >= 1986)
+
+
+
+#Dimension
+dim(cdata)
+#Correlation between weight and age.     0.17 cor
+cor.test(cdata$Weight, cdata$Age)
+#Correlation between height and age.    slight cor 1.25
+cor.test(cdata$Height, cdata$Age)
+#Correlation between Year and age.      0.11 cor
+cor.test(cdata$Year, cdata$Age)
+
+
+#Checking for event, we need or not!  
+event_t <- table(cdata$Event)
+sort(event_t, decreasing = TRUE)
+
+
+summary(cdata)
+str(cdata)
+
+
+duplicated_rows <- duplicated(cdata) | duplicated(cdata, fromLast = TRUE)
+
+# Print the duplicated rows
+duplicated_rows_indices <- which(duplicated_rows)
+duplicated_rows_data <- cdata[duplicated_rows, ]
+print(duplicated_rows_data)
+
+
+# Identify duplicated rows to keep (first occurrence of each unique row)
+unique_rows <- !duplicated(cdata)
+
+# Filter the data frame to keep only the unique rows
+cdata <- cdata[unique_rows, ]
+
+
+#Deleting rows, no need to them
+cdata <- cdata[, !names(cdata) %in% "Event"]
+cdata <- cdata[, !names(cdata) %in% "Games"]
+cdata <- cdata[, !names(cdata) %in% "ID"]
+cdata <- cdata[, !names(cdata) %in% "Team"]
+cdata <- cdata[, !names(cdata) %in% "Name"]
+
+
+
+colnames(cdata)
+
+# Change the column name from "NOC" to "Country"
+colnames(cdata)[colnames(cdata) == "NOC"] <- "Country"
+
+
+
+#Recheck
+summary(cdata)
+str(cdata)
+dim(cdata)
+
+
+
+
+#SCATTERPLOTS
+ggplot(cdata, aes(x=Year, y=Age)) +
+  geom_point() +
+  geom_smooth(method = "lm", color="blue") +
+  ggtitle("Scatterplot of year vs age")+
+  theme_bw()
+
+ggplot(cdata, aes(x=Year, y=Height)) +
+  geom_point() +
+  geom_smooth(method = "lm", color="blue") +
+  ggtitle("Scatterplot of year vs height")+
+  theme_bw()
+
+ggplot(cdata, aes(x=Year, y=Weight)) +
+  geom_point() +
+  geom_smooth(method = "lm", color="blue") +
+  ggtitle("Scatterplot of year vs weight")+
+  theme_bw()
+
+ggplot(cdata, aes(x=Age, y=Height)) +
+  geom_point() +
+  geom_smooth(method = "lm", color="blue") +
+  ggtitle("Scatterplot of age vs Height")+
+  theme_bw()
+
+ggplot(cdata, aes(x=Age, y=Weight)) +
+  geom_point() +
+  geom_smooth(method = "lm", color="blue") +
+  ggtitle("Scatterplot of age vs weight")+
+  theme_bw()
+
+ggplot(cdata, aes(x=Height, y=Weight)) +
+  geom_point() +
+  geom_smooth(method = "lm", color="blue") +
+  ggtitle("Scatterplot of height vs weight")+
+  theme_bw()
+
+ggplot(cdata, aes(x=Medal, y=Sport)) +
+  geom_point() +
+  geom_smooth(method = "lm", color="blue") +
+  ggtitle("Scatterplot of height vs weight")+
+  theme_bw()
+
+
+
+
+#BARPLOTS
+
+# Create a bar plot for the Sex column with two different colors
+ggplot(cdata, aes(x = reorder(Sex, -table(Sex)[Sex]), fill = Sex)) +
+  geom_bar(stat = "count") +
+  scale_fill_manual(values = c("pink", "lightblue")) +  # Set colors for each level of Sex
+  geom_text(stat = "count", aes(label = ..count..), vjust = -0.5, color = "black") +  # Add count labels to the bars
+  xlab("") +
+  ggtitle("Barplot of Sex") +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1))
+#-------------------------------
+
+
+
+ggplot(cdata, aes(x = reorder(Season, -table(Season)[Season]), fill = Season)) +
+  geom_bar(stat = "count") +
+  scale_fill_manual(values = c("green", "yellow")) +  # Set colors for each level of Sex
+  geom_text(stat = "count", aes(label = ..count..), vjust = -0.5, color = "black") +  # Add count labels to the bars
+  xlab("") +
+  ggtitle("Barplot of Season") +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1))
+#-------------------------------
+
+
+
+city_freq <- table(cdata$City)
+# Order the cities by frequency in decreasing order
+ordered_cities <- names(sort(city_freq, decreasing = TRUE))
+# Convert City to a factor with levels ordered by frequency
+cdata$City <- factor(cdata$City, levels = ordered_cities)
+# Create a bar plot for the City column with Viridis color palette
+ggplot(cdata, aes(x = City, fill = City)) +
+  geom_bar() +
+  scale_fill_viridis_d(option = "A", end = 0.9) +  # Use Viridis color palette for fill color
+  xlab("City") +
+  ylab("Frequency") +
+  ggtitle("Barplot of City with Viridis Color") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  guides(fill = FALSE)
+#-------------------------------
+
+
+sport_freq <- table(cdata$Sport)
+# Order the cities by frequency in decreasing order
+ordered_sport <- names(sort(sport_freq, decreasing = TRUE))
+# Convert City to a factor with levels ordered by frequency
+cdata$Sport <- factor(cdata$Sport, levels = ordered_sport)
+# Create a bar plot for the City column with Viridis color palette
+ggplot(cdata, aes(x = Sport, fill = Sport)) +
+  geom_bar() +
+  scale_fill_viridis_d(option = "A", end = 0.9) +  # Use Viridis color palette for fill color
+  xlab("Sport") +
+  ylab("Frequency") +
+  ggtitle("Barplot of Sport with Viridis Color") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1)) +
+  guides(fill = FALSE)
+#-------------------------------
+
+
+
+ggplot(cdata, aes(x = reorder(Medal, -table(Medal)[Medal]), fill = Medal)) +
+  geom_bar(stat = "count") +
+  scale_fill_manual(values = c("#CD7F32", "#FFD700", "#C0C0C0")) +  # Set colors for each level of Sex
+  geom_text(stat = "count", aes(label = ..count..), vjust = -0.5, color = "black") +  # Add count labels to the bars
+  xlab("") +
+  ggtitle("Barplot of Medal") +
+  theme(axis.text.x = element_text(angle = 0, hjust = 1))
+
+
+
+
+#BOXPLOTS
+#boxplot of year
+box_year <- ggplot(cdata, aes(x=Year)) +
+  geom_boxplot(fill = 'lightyellow', color = 'black', outlier.color = "red", notch = TRUE) +xlab("") +ggtitle("Boxplot of year")
+box_year
+#-------------------------------
+
+#boxplot of age
+box_age <- ggplot(cdata, aes(x=Age)) +
+  geom_boxplot(fill = 'lightyellow', color = 'black', outlier.color = "red", notch = TRUE) +xlab("") +ggtitle("Boxplot of age")
+box_age
+#-------------------------------
+
+#boxplot of height
+box_height <- ggplot(cdata, aes(x=Height)) +
+  geom_boxplot(fill = 'lightyellow', color = 'black', outlier.color = "red", notch = TRUE) +xlab("") +ggtitle("Boxplot of height")
+box_height
+#-------------------------------
+
+#boxplot of weight
+box_weight <- ggplot(cdata, aes(x=Weight)) +
+  geom_boxplot(fill = 'lightyellow', color = 'black', outlier.color = "red", notch = TRUE) +xlab("") +ggtitle("Boxplot of weight")
+box_weight
+
+
+
+
+#HISTOGRAMS
+
+#Histogram of Year
+hist_year <- ggplot(cdata, aes(x = Year)) +
+  geom_histogram(binwidth = 1, color = "grey", fill = "#69b3a2", alpha = 1) +
+  labs(title = "Distribution of Year",
+       x = "Year",
+       y = "Frequency")
+hist_year
+#-------------------------------
+
+#Histogram of Age
+hist_age <- ggplot(cdata, aes(x = Age)) +
+  geom_histogram(binwidth = 1, color = "grey", fill = rgb(0.2,0.4,0.6,0.6), alpha = 1) +
+  labs(title = "Distribution of Age",
+       x = "Age",
+       y = "Frequency")
+hist_age
+#-------------------------------
+
+#Histogram of Height
+hist_height <- ggplot(cdata, aes(x = Height)) +
+  geom_histogram(binwidth = 1, color = "grey", fill = "brown", alpha = 1) +
+  labs(title = "Distribution of Height",
+       x = "Height",
+       y = "Frequency")
+hist_height
+#-------------------------------
+
+#Histogram of Weight
+hist_weigth <- ggplot(cdata, aes(x = Weight)) +
+  geom_histogram(binwidth = 1, color = "grey", fill = rgb(0.8,0.1,0.1,0.6), alpha = 1) +
+  labs(title = "Distribution of Weight",
+       x = "Weight",
+       y = "Frequency")
+hist_weigth
+
+
+
+
+#PIECHARTS
+
+# Summarize the data to get counts of each category
+sex_counts <- table(cdata$Sex)
+# Calculate percentages
+percentages <- round(100 * sex_counts / sum(sex_counts), 1)
+# Create labels with percentages for Female and Male separately
+labels_female <- paste("Female", percentages[1], "%", sep = " ")
+labels_male <- paste("Male", percentages[2], "%", sep = " ")
+# Create a pie chart with labels showing counts and percentages
+pie(sex_counts, labels = c(labels_female, labels_male), main = "Distribution of Sex")
+#-------------------------------
+
+
+medal_counts <- table(cdata$Medal)
+# Calculate percentages
+percentages <- round(100 * medal_counts / sum(medal_counts), 1)
+# Create labels with percentages for Female and Male separately
+labels_gold <- paste("Gold", percentages[1], "%", sep = " ")
+labels_silver <- paste("Silver", percentages[2], "%", sep = " ")
+labels_bronze <- paste("Brozne", percentages[3], "%", sep = " ")
+# Create a pie chart with labels showing counts and percentages
+pie(medal_counts, labels = c(labels_gold, labels_silver, labels_bronze), main = "Distribution of Medals")
+#-------------------------------
+
+
+season_counts <- table(cdata$Season)
+# Calculate percentages
+percentages <- round(100 * season_counts / sum(season_counts), 1)
+# Create labels with percentages for Female and Male separately
+labels_winter <- paste("Winter", percentages[1], "%", sep = " ")
+labels_summer <- paste("Summer", percentages[2], "%", sep = " ")
+# Create a pie chart with labels showing counts and percentages
+pie(season_counts, labels = c(labels_winter, labels_summer), main = "Distribution of Season")
+#-------------------------------
+
+
+# Create a pie chart with labels showing city counts and percentages
+city_counts <- table(cdata$City)
+percentages <- round(100 * city_counts / sum(city_counts), 1)
+labels <- paste(names(city_counts), paste0(" (", percentages, "%)"), sep = "")
+pie(city_counts, labels = labels, main = "Distribution of city", cex = 0.5)
+#-------------------------------
+
+
+# Create a pie chart with labels showing year counts and percentages
+year_counts <- table(cdata$Year)
+percentages_year <- round(100 * year_counts / sum(year_counts), 1)
+labels_y <- paste(names(year_counts), paste0(" (", percentages_year, "%)"), sep = "")
+pie(year_counts, labels = labels_y, main = "Distribution of Year", cex = 0.6)
+
